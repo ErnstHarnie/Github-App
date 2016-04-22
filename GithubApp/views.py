@@ -7,23 +7,32 @@ import urllib
 
 
 # Create your views here.
-def index(self):
-	return render(self, "GithubApp/index.html", {})
+def index(request):
+	reposUrl = 'https://api.github.com/repos/' # https://api.github.com/repos/
+	commitsUrl = '' # https://api.github.com/repos/ErnstHarnie/Velo/commits
+	username = ''
+	repository = ''
+	reposData = ''
+	commitsData = ''
+	if (request.method == "POST" and request.POST):
+		username = request.POST['username']
+		repository = request.POST['repository']
+		reposUrl = reposUrl + username + "/" + repository
+		commitsUrl = reposUrl + "/commits"
+
+		reposData = GetData(reposUrl)
+		commitsData = GetData(commitsUrl)
+	return render(request, "GithubApp/index.html", {'repos': reposData, 'commit': commitsData, 'url': reposUrl, 'url2': commitsUrl})
+	#return render(self, "GithubApp/index.html", {})
 
 def add(request):
 	return render(request, "GithubApp/addrepository.html", {})
 
 def addrepository(request):
-	reposUrl = "https://api.github.com/repos/"
-	commitsUrl = "https://api.github.com/repos/ErnstHarnie/Velo/commits"
-	username = ''
-	repository = ''
-	data = ''
-	if (request.method == "POST" and request.POST):
-		username = request.POST['username']
-		repository = request.POST['repository']
-		reposUrl = reposUrl + username + "/" + repository 
+	return (request, "GithubApp/index.html", {})
 
-		response = urllib.urlopen(reposUrl).read() 
-		data = json.loads(response.decode('utf-8'))		
-	return render(request, "GithubApp/index.html", {'data': data, 'url': reposUrl})
+
+def GetData(url):
+	response = urllib.urlopen(url).read() 
+	data = json.loads(response.decode('utf-8'))
+	return data

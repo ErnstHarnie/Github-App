@@ -6,8 +6,29 @@
 <body>
 <a href="add">Add </a>
 {{url}}
+<br/>
+{{url2}}
 
-<h1>{{data.full_name}}: </h1>
+{% if commit %}
+<h1>Commits from <a href="http://www.github.com/{{repos.full_name}}" target="_blank">{{repos.full_name}}</a>: </h1>
+
+<table class="table table-hover table-responsive">
+
+<tr><th>Committed by</th><th>Message</th><th>Date</th></tr>
+
+{% for c in commit %} 
+<tr><td> {{c.commit.committer.name}} </td> <td> {{ c.commit.message }} </td> <td> {{ c.commit.committer.date }} </td> </tr>
+{% endfor%}
+
+</table>
+
+
+{% else %}
+<strong>Commit not found.</strong>
+{% endif %}
+
+<!-- to do: look at split for 'Message' -->
+
 
 
 </body>
