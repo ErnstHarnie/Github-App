@@ -16,7 +16,7 @@ def add(request):
 
 def repository(request):
 	reposUrl = 'https://api.github.com/repos/' # https://api.github.com/repos/
-	commitsUrl = '' # https://api.github.com/repos/ErnstHarnie/Velo/commits
+	commitsUrl = '' # e.g: https://api.github.com/repos/ErnstHarnie/Velo/commits
 	username = ''
 	repository = ''
 	reposData = ''
@@ -29,22 +29,20 @@ def repository(request):
 		repository = request.POST['repository']
 		reposUrl = reposUrl + username + "/" + repository
 		commitsUrl = reposUrl + "/commits"
-
-		repoPath = 'Users/' + username + '/' + repository + '/repository.txt'
-		commitPath = 'Users/' + username + '/' + repository + '/commits.txt'
+		repoPath = 'Users/' + username + '/' + repository + '/repository.json'
+		commitPath = 'Users/' + username + '/' + repository + '/commits.json'
 
 		reposData = GetData(reposUrl)
 		commitsData = GetData(commitsUrl)
-		if 'message' in reposData:				
+		if 'message' in reposData:							# on error
 				message = reposData['message']
-				if DoesFileExist(repoPath):
-					file = open(repoPath, 'r')
-					reposData = json.loads(file.read().decode('utf-8'))
-					if DoesFileExist(commitPath):
-						file = open(commitPath, 'r')
-						commitsData = json.loads(file.read().decode('utf-8'))
+				if DoesFileExist(repoPath) and DoesFileExist(commitPath):	# load locally stored file
+					repoFile = open(repoPath, 'r')
+					reposData = json.loads(repoFile.read().decode('utf-8'))
+					commitFile = open(commitPath, 'r')
+					commitsData = json.loads(commitFile.read().decode('utf-8'))
 		else:
-			SaveJsonToFile(reposData, commitsData, username, repository)
+			SaveJsonToFile(reposData, commitsData, username, repository) # save only when there are no errors
 
 	return render(request, "GithubApp/index.html", {'repos': reposData, 'commit': commitsData, 'message': message})
 
@@ -78,15 +76,12 @@ def DoesFileExist(path):
 		return False
 
 def SaveJsonToFile(repoJson, commitJson, username, repository):
+	# Path: Users/Username/Repository/File.json
 	start_path = 'Users/'
 	final_path = os.path.join(start_path, username, repository)
-	#if not os.path.exists(username):
-		#start_path.join(username)
-	#if not os.path.exists(repository):
-		#start_path.join(repository)
 	if not os.path.isdir(final_path):
 		os.makedirs(final_path)
-	with open('Users/' + username + '/' + repository + '/repository.txt', 'w+') as outfile:
+	with open('Users/' + username + '/' + repository + '/repository.json', 'w+') as outfile:
 		json.dump(repoJson, outfile)
-	with open('Users/' + username +  '/' + repository + '/commits.txt', 'w+') as outfile:
+	with open('Users/' + username +  '/' + repository + '/commits.json', 'w+') as outfile:
 		json.dump(commitJson, outfile)
