@@ -1,12 +1,9 @@
-<html>
-
-<head>
-<link href="{{STATIC_URL|default:"/static/"}}css/bootstrap.min.css" rel="stylesheet">
-</head>
+{% extends 'GithubApp/base.html' %}
+{% block body %}
 
 <body>
 	<h1 class="col-sm-offset-2">Add a repository:</h1><br/>
-	<form action="index" method="POST" class="form-horizontal" role="form">
+	<form action="repository" method="POST" class="form-horizontal" role="form">
 		{% csrf_token %}
 		<div class="form-group col-xs-6">
 			<label for="username" class="control-label col-sm-2">Username:</label>
@@ -27,6 +24,5 @@
 	</form>
 
 	{{username}}
-</body>
 
-</html>
+{% endblock %}

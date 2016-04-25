@@ -1,23 +1,19 @@
-<html>
-<head>
- <link href="{{STATIC_URL|default:"/static/"}}css/bootstrap.min.css" rel="stylesheet">
-</head>
+{% extends 'GithubApp/base.html' %}
+{% block body %}
 
-<body>
-<a href="add">Add </a>
-{{url}}
-<br/>
-{{url2}}
+{% if message %}
+<div class="alert alert-info" role="alert">{{message}}</div>
+{% endif %}
 
 {% if commit %}
-<h1>Commits from <a href="http://www.github.com/{{repos.full_name}}" target="_blank">{{repos.full_name}}</a>: </h1>
+<h1 style="float:left;" class="pull-left">Commits from <a href="http://www.github.com/{{repos.full_name}}" target="_blank">{{repos.full_name}}</a>: </h1>  <a href="download/{{repos.owner.login}}/{{repos.name}}/{{repos.default_branch}}" style="float:right;" class="btn btn-info" role="button" target="_blank">Download Repository ({{repos.default_branch}})</a>
 
 <table class="table table-hover table-responsive">
 
-<tr><th>Committed by</th><th>Message</th><th>Date</th></tr>
+<tr><th>Committed by</th><th>Message</th><th>Date</th><th>Download</th><th>Details</th></tr>
 
 {% for c in commit %} 
-<tr><td> {{c.commit.committer.name}} </td> <td> {{ c.commit.message }} </td> <td> {{ c.commit.committer.date }} </td> </tr>
+<tr><td> {{c.commit.committer.name}} </td> <td> {{ c.commit.message }} </td> <td> {{ c.commit.committer.date }}<td>Download</td></td><td>Details</td> </tr>
 {% endfor%}
 
 </table>
@@ -25,12 +21,10 @@
 
 {% else %}
 <strong>Commit not found.</strong>
+<p>Click <a href="add">here</a> to add a commit.</p>
 {% endif %}
 
 <!-- to do: look at split for 'Message' -->
 
 
-
-</body>
-
-</html>
+{% endblock %}
