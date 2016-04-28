@@ -20,8 +20,8 @@
 
 
 {% else %}
-<strong>Commit not found.</strong>
-<p>Click <a href="add">here</a> to add a commit.</p>
+<strong>Repository not found.</strong>
+<p>Click <a href="{% url 'Github-App:add' %}">here</a> to look for another repository.</p>
 {% endif %}
 
 <!-- to do: look at split for 'Message' -->

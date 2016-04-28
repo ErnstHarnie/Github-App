@@ -1,10 +1,7 @@
 from django.shortcuts import render
 from django.views.generic.base import TemplateView
 from django.http import HttpResponse
-import os.path
-import json
-import urllib
-
+import os.path, json, urllib
 
 
 # Create your views here.
@@ -23,7 +20,6 @@ def repository(request):
 	commitsData = ''
 	message = ''
 
-
 	if (request.method == "POST" and request.POST):
 		username = request.POST['username']
 		repository = request.POST['repository']
@@ -37,14 +33,17 @@ def repository(request):
 		if 'message' in reposData:							# on error
 				message = reposData['message']
 				if DoesFileExist(repoPath) and DoesFileExist(commitPath):	# load locally stored file
-					repoFile = open(repoPath, 'r')
-					reposData = json.loads(repoFile.read().decode('utf-8'))
-					commitFile = open(commitPath, 'r')
-					commitsData = json.loads(commitFile.read().decode('utf-8'))
+					reposData = GetData(repoPath)
+					commitsData = GetData(commitPath)
+				else:
+					reposData = ''
+					commitsData = ''
 		else:
-			SaveJsonToFile(reposData, commitsData, username, repository) # save only when there are no errors
+			SaveJsonToFile(reposData, repoPath, username, repository) # save only when there are no errors
+			SaveJsonToFile(commitsData, commitPath, username, repository) # save only when there are no errors
 
 	return render(request, "GithubApp/index.html", {'repos': reposData, 'commit': commitsData, 'message': message})
+
 
 def download(request, owner_name, repo_name, branch_name):
 	message = 'Download started.'
@@ -57,7 +56,7 @@ def GetData(url):
 		response = urllib.urlopen(url).read() 
 		data = json.loads(response.decode('utf-8'))
 		return data
-	except:
+	except Exception as e:
 		response = '{"message": "Unable to get online data."}'
 		data = json.loads(response.decode('utf-8'))
 		return data
@@ -75,13 +74,11 @@ def DoesFileExist(path):
 	else:
 		return False
 
-def SaveJsonToFile(repoJson, commitJson, username, repository):
+def SaveJsonToFile(jsonFile, path, username, repository):
 	# Path: Users/Username/Repository/File.json
 	start_path = 'Users/'
 	final_path = os.path.join(start_path, username, repository)
 	if not os.path.isdir(final_path):
 		os.makedirs(final_path)
-	with open('Users/' + username + '/' + repository + '/repository.json', 'w+') as outfile:
-		json.dump(repoJson, outfile)
-	with open('Users/' + username +  '/' + repository + '/commits.json', 'w+') as outfile:
-		json.dump(commitJson, outfile)
+	with open(path, 'w+') as outfile:
+		json.dump(jsonFile, outfile)
