@@ -4,7 +4,6 @@ from django.http import HttpResponse
 import os.path, json, urllib
 
 
-# Create your views here.
 def index(request):
 	return render(request, "GithubApp/addrepository.html", {})
 
@@ -12,10 +11,8 @@ def add(request):
 	return render(request, "GithubApp/addrepository.html", {})
 
 def repository(request):
-	reposUrl = 'https://api.github.com/repos/' # https://api.github.com/repos/
+	reposUrl = 'https://api.github.com/repos/'
 	commitsUrl = '' # e.g: https://api.github.com/repos/ErnstHarnie/Velo/commits
-	username = ''
-	repository = ''
 	reposData = ''
 	commitsData = ''
 	message = ''
@@ -25,6 +22,7 @@ def repository(request):
 		repository = request.POST['repository']
 		reposUrl = reposUrl + username + "/" + repository
 		commitsUrl = reposUrl + "/commits"
+
 		repoPath = 'Users/' + username + '/' + repository + '/repository.json'
 		commitPath = 'Users/' + username + '/' + repository + '/commits.json'
 
@@ -38,26 +36,44 @@ def repository(request):
 				else:
 					reposData = ''
 					commitsData = ''
-		else:
-			SaveJsonToFile(reposData, repoPath, username, repository) # save only when there are no errors
-			SaveJsonToFile(commitsData, commitPath, username, repository) # save only when there are no errors
+		else: # save only when there are no errors
+			SaveJsonToFile(reposData, repoPath, username, repository) 
+			SaveJsonToFile(commitsData, commitPath, username, repository)
 
 	return render(request, "GithubApp/index.html", {'repos': reposData, 'commit': commitsData, 'message': message})
 
+def details(request, username, repository, sha):
+	reposUrl = 'https://api.github.com/repos/' + username + "/" + repository
+	commitsUrl = reposUrl + "/commits/" + sha
+	message = ''
 
-def download(request, owner_name, repo_name, branch_name):
-	message = 'Download started.'
-	return HttpResponse("Download started")
-	#return render(request, "GithubApp/index.html", {'message': message})
+	detailedPath = 'Users/' + username + '/' + repository + '/' + sha + '.json'
+	repoPath = 'Users/' + username + '/' + repository + '/repository.json'
 
+	commitsData = GetData(commitsUrl)
+	reposData = GetData(reposUrl)
+
+	if 'message' in reposData:			# on error
+		message = reposData['message']
+		if DoesFileExist(detailedPath):	# load locally stored file
+			commitsData = GetData(detailedPath)
+			reposData = GetData(repoPath)
+		else:
+			commitsData = ''
+			reposData = ''
+	else:  # save only when there are no errors	
+			SaveJsonToFile(commitsData, detailedPath, username, repository)
+			SaveJsonToFile(reposData, repoPath, username, repository) 
+
+	return render(request, "GithubApp/details.html", {'commits': commitsData, 'repos': reposData, 'message': message})
 
 def GetData(url):
 	try:
 		response = urllib.urlopen(url).read() 
 		data = json.loads(response.decode('utf-8'))
 		return data
-	except Exception as e:
-		response = '{"message": "Unable to get online data."}'
+	except Exception as e: 
+		response = '{"message": "Unable to get online data."}' 
 		data = json.loads(response.decode('utf-8'))
 		return data
 

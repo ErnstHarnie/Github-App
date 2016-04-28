@@ -1,0 +1,41 @@
+{% extends 'GithubApp/base.html' %}
+{% block body %}
+
+{% if message %}
+<div class="alert alert-info" role="alert">{{message}}</div>
+{% endif %}
+
+{% if repos %}
+
+<h1 style="float:left;" class="pull-left">Details from <a href="http://www.github.com/{{repos.full_name}}" target="_blank">{{repos.full_name}}</a>: </h1>  <a href="http://github.com/{{repos.owner.login}}/{{repos.name}}/archive/{{repos.default_branch}}.zip" style="float:right;" class="btn btn-info" role="button" target="_blank">Download Repository ({{repos.default_branch}})</a> 
+ <a href="http://github.com/{{repos.owner.login}}/{{repos.name}}/archive/{{commits.sha}}.zip" style="float:right;margin-right:5px;" class="btn btn-info" role="button" target="_blank">Download this commit</a>
+
+<div class="container">
+<table class="table">
+<tr><th><strong>Commiter</strong></th><th>{{commits.commit.committer.name}}</th></tr>
+<tr><th><strong>Date</strong></th><th>{{commits.commit.committer.date}}</th></tr>
+<tr><th><strong>Message</strong></th><th>{{commits.commit.message}}</th></th></tr>
+<tr><th><strong>Current commit</strong></th><th>{{commits.sha}}</th></tr>
+<tr><th><strong>Total changes</strong></th><th>{{commits.stats.total}}</th></tr>
+<tr><th><strong>Total additions</strong></th><th>{{commits.stats.additions}}</th></tr>
+<tr><th><strong>Total deletions</strong></th><th>{{commits.stats.deletions}}</th></tr>
+</table>
+</div>
+
+<h3>10 Most changed files</h3>
+<table class="table table-hover table-responsive">
+
+<tr><th>Filename</th><th>Status</th><th>Total Changes</th><th>Additions</th><th>Deletions</th></tr>
+{% for c in commits.files %} 
+<tr><td> {{c.filename}} </td> <td> {{c.status}} </td> <td> {{c.changes}}<td>{{c.additions}}</td></td><td>{{c.deletions}}</td> </tr>
+{% endfor%}
+
+</table>
+
+
+{% else %}
+<strong>Not found.</strong>
+<p>Click <a href="{% url 'Github-App:add' %}">here</a> to look for another repository.</p>
+{% endif %}
+
+{% endblock %}
