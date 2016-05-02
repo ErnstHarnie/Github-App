@@ -26,7 +26,7 @@
 <table class="table table-hover table-responsive">
 
 <tr><th>Filename</th><th>Status</th><th>Total Changes</th><th>Additions</th><th>Deletions</th></tr>
-{% for c in commits.files %} 
+{% for c in sorted %} 
 <tr><td> {{c.filename}} </td> <td> {{c.status}} </td> <td> {{c.changes}}<td>{{c.additions}}</td></td><td>{{c.deletions}}</td> </tr>
 {% endfor%}
 

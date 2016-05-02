@@ -1,26 +1,27 @@
 {% extends 'GithubApp/base.html' %}
 {% block body %}
 
-<body>
 <div class="container">
 	<h1 class="col-sm-offset-2">Add a repository:</h1><br/>
 	<form action="{% url 'Github-App:repository' %}" method="POST" class="form-horizontal" role="form">
 		{% csrf_token %}
-		<div class="form-group col-xs-6">
+		<div class="form-group ">
 			<label for="username" class="control-label col-sm-2">Username:</label>
 			<div class="col-sm-10"> 
 				<input type="text" name="username" id="username" required class="form-control"/>
 			</div>
 		</div>
-		<br/><br/><br/>
-		<div class="form-group col-xs-6">
+
+		<div class="form-group">
 			<label for="repository" class="control-label col-sm-2">Repository: </label>
 			<div class="col-sm-10"> 
 				<input type="text" name="repository" id="repository" required class="form-control" />
 			</div>
 		</div>
-		<div class=" col-sm-10">
-			<button type="submit" class="btn btn-primary" >Submit</button>
+		<div class="form-group">
+			<div class="col-sm-offset-2 col-sm-10">
+				<button type="submit" class="btn btn-primary" >Submit</button>
+			</div>
 		</div>
 	</form>
 </div>

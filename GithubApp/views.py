@@ -63,9 +63,13 @@ def details(request, username, repository, sha):
 			reposData = ''
 	else:  # save only when there are no errors	
 			SaveJsonToFile(commitsData, detailedPath, username, repository)
-			SaveJsonToFile(reposData, repoPath, username, repository) 
+			SaveJsonToFile(reposData, repoPath, username, repository)
 
-	return render(request, "GithubApp/details.html", {'commits': commitsData, 'repos': reposData, 'message': message})
+	lines = sorted(commitsData['files'], key=lambda c: c.get('changes', 0), reverse=True) # sorts files array from json
+	maxElements = 10 
+	del lines[:-maxElements] # deletes all elements after maxElements
+
+	return render(request, "GithubApp/details.html", {'commits': commitsData, 'sorted': lines,  'repos': reposData, 'message': message})
 
 def GetData(url):
 	try:
