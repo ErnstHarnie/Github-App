@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from django.views.generic.base import TemplateView
 from django.http import HttpResponse
+from zipfile import ZipFile
+import urllib2
 import os.path, json, urllib
 
 
@@ -23,7 +25,9 @@ def repository(request):
 		reposUrl = reposUrl + username + "/" + repository
 		commitsUrl = reposUrl + "/commits"
 
+
 		repoPath = 'Users/' + username + '/' + repository + '/repository.json'
+		downloadedRepoPath = 'Users/' + username + '/' + repository  # users/naam/repo
 		commitPath = 'Users/' + username + '/' + repository + '/commits.json'
 
 		reposData = GetData(reposUrl)
@@ -36,9 +40,13 @@ def repository(request):
 				else:
 					reposData = ''
 					commitsData = ''
-		else: # save only when there are no errors
+		else: # If there are no errors
 			SaveJsonToFile(reposData, repoPath, username, repository) 
 			SaveJsonToFile(commitsData, commitPath, username, repository)
+			if request.POST.get('download', False):
+				downloadUrl = "http://github.com/" + username + "/" + repository + "/archive/master.zip"
+				download(downloadUrl, downloadedRepoPath)
+
 
 	return render(request, "GithubApp/index.html", {'repos': reposData, 'commit': commitsData, 'message': message})
 
@@ -46,6 +54,7 @@ def details(request, username, repository, sha):
 	reposUrl = 'https://api.github.com/repos/' + username + "/" + repository
 	commitsUrl = reposUrl + "/commits/" + sha
 	message = ''
+	lines = ''
 
 	detailedPath = 'Users/' + username + '/' + repository + '/' + sha + '.json'
 	repoPath = 'Users/' + username + '/' + repository + '/repository.json'
@@ -61,15 +70,30 @@ def details(request, username, repository, sha):
 		else:
 			commitsData = ''
 			reposData = ''
-	else:  # save only when there are no errors	
+	else:  # save only when there are no errors
 			SaveJsonToFile(commitsData, detailedPath, username, repository)
 			SaveJsonToFile(reposData, repoPath, username, repository)
 
-	lines = sorted(commitsData['files'], key=lambda c: c.get('changes', 0), reverse=True) # sorts files array from json
-	maxElements = 10 
-	del lines[:-maxElements] # deletes all elements after maxElements
+	if commitsData:
+		lines = sorted(commitsData['files'], key=lambda c: c.get('changes', 0), reverse=True) # sorts files array from json
+		maxElements = 10 
+		del lines[:-maxElements] # deletes all elements after maxElements (10)
 
-	return render(request, "GithubApp/details.html", {'commits': commitsData, 'sorted': lines,  'repos': reposData, 'message': message})
+	return render(request, "GithubApp/details.html", {'commits': commitsData, 'lines': lines, 'sorted': lines,  'repos': reposData, 'message': message})
+
+
+def download(url, destinationPath):
+	#http://stackoverflow.com/questions/16760992/how-to-download-a-zip-file-from-a-site-python
+	response = urllib.urlopen(url)
+	zipFile = response.read()
+
+	with open(destinationPath + "/master.zip", "wb") as f:
+		f.write(zipFile)
+
+	zf = ZipFile(destinationPath + "/master.zip")
+	zf.extractall(path = destinationPath)
+	zf.close()
+
 
 def GetData(url):
 	try:
