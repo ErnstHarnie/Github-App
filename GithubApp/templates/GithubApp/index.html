@@ -13,7 +13,7 @@
 <tr><th>Committed by</th><th>Message</th><th>Date</th><th>Download</th><th>Details</th></tr>
 
 {% for c in commit %} 
-<tr><td> {{c.commit.committer.name}} </td> <td> {{ c.commit.message }} </td> <td> {{ c.commit.committer.date }}<td><a href="http://github.com/{{repos.owner.login}}/{{repos.name}}/archive/{{c.sha}}.zip">Download</a></td></td><td><a href="{% url 'Github-App:details' repos.owner.login repos.name c.sha %}">Details</td> </tr>
+<tr><td> {{c.commit.committer.name}} </td> <td> {{ c.commit.message }} </td> <td> {{ c.commit.committer.date }}<td><a href="http://github.com/{{repos.owner.login}}/{{repos.name}}/archive/{{c.sha}}.zip">Download</a></td></td><td><a href="{% url 'Github-App:details' repos.owner.login repos.name c.sha %}" target="_blank">Details</a></td> </tr>
 {% endfor%}
 
 </table>
