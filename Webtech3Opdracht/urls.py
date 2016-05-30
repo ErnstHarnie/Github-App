@@ -18,5 +18,6 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^', include('GithubApp.urls')),
     url(r'^GithubApp/', include('GithubApp.urls')),
 ]

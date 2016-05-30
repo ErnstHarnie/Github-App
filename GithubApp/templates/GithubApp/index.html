@@ -7,7 +7,13 @@
 
 {% if repos %}
 {% for k, r in repos.items %}
-<h1 style="float:left;" class="pull-left">Commits from <a href="http://www.github.com/{{r.full_name}}" target="_blank">{{r.full_name}}</a>: </h1>  <a href="http://github.com/{{r.owner.login}}/{{r.name}}/archive/{{r.default_branch}}.zip" style="float:right;" class="btn btn-info" role="button" target="_blank">Download Repository ({{r.default_branch}})</a>
+<form action="{%  url 'Github-App:delete' %}" method="POST" role="form">
+{% csrf_token %}
+<input type="text" id="repokey" name="repokey" value="{{k}}" hidden>
+<button type="submit" style="float:right; margin:1px;" class="btn btn-danger"> Delete from list </button>
+</form>
+{% if r.full_name  %}
+<h1 style="float:left;" class="pull-left">Commits from <a href="http://www.github.com/{{r.full_name}}" target="_blank">{{r.full_name}}</a>: </h1>  <a href="http://github.com/{{r.owner.login}}/{{r.name}}/archive/{{r.default_branch}}.zip" style="float:right;margin:1px" class="btn btn-info" role="button" target="_blank">Download Repository ({{r.default_branch}})</a>
 
 <table class="table table-hover table-responsive">
 
@@ -15,7 +21,7 @@
 <tr><th>Committed by</th><th>Message</th><th>Date</th><th>Download</th><th>Details</th></tr>
 
 {% for key, commit in commit.items %} 
-{% if k == key and not c.message %}
+{% if k == key and not commit.message %}
 {% for c in commit %}
 <tr><td> {{c.commit.committer.name}} </td> <td> {{ c.commit.message }} </td> <td> {{ c.commit.committer.date }}<td><a href="http://github.com/{{r.owner.login}}/{{r.name}}/archive/{{c.commit.sha}}.zip">Download</a></td></td><td><a href="{% url 'Github-App:details' r.owner.login r.name c.sha %}" target="_blank">Details</a></td> </tr>
 {% endfor %}
@@ -25,9 +31,15 @@
 </table>
 <div class="alert alert-info" role="alert">Error: Commits could not be loaded.</div>
 {% endif %}
+
+
 {% endfor %}
 {% else %}
 <p>No commits.</p>
+{% endif %}
+
+{% else %}
+<p>Repository '{{k}}' could not be found.</p>
 {% endif %}
 
 <hr/>

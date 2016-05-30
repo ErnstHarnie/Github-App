@@ -3,18 +3,10 @@ from django.views.generic.base import TemplateView
 from django.http import HttpResponseRedirect
 from django.conf import settings
 from django.shortcuts import render_to_response
-
-import urlparse
-import logging
-import re
-import requests
 from zipfile import ZipFile
-import urllib2
-import os.path, json, urllib
+import os.path, json, urllib, urllib2, requests, re, logging, urlparse
 
 githubRepoUrls = {}
-logger = logging.getLogger(__name__)
-isAuthorized = False
 
 
 def add(request):
@@ -31,6 +23,14 @@ def add(request):
 	  	return HttpResponseRedirect('/GithubApp/')
 	else:
 		return render(request, "GithubApp/addrepository.html", {'access_token': request.session['access_token']})
+
+
+def delete(request):
+
+	k = request.POST.get('repokey', False)
+	print 'key: ' + str(k)
+	githubRepoUrls.pop(k, None)
+	return HttpResponseRedirect("/GithubApp/")
 
 def repository(request):
 
@@ -55,8 +55,7 @@ def repository(request):
 
 				jsonReposData[key] = GetData(reposUrl, request.session['access_token'])
 				jsonCommitsData[key] = GetData(commitsUrl, request.session['access_token'])
-				
-		print len(jsonCommitsData)
+
 	return render(request, "GithubApp/index.html", {'repos': jsonReposData, 'commit': jsonCommitsData, 'message': message, 'access_token': request.session['access_token']})
 
 def details(request, username, repository, sha):
@@ -88,14 +87,12 @@ def authorize(request):
 		r = requests.post('https://github.com/login/oauth/access_token', data=json.dumps({'client_id':settings.CLIENT_ID, 'client_secret':settings.CLIENT_SECRET,'code':settings.CLIENT_CODE}), headers=header)
 		if r.status_code is 200:
 			parsed = urlparse.parse_qs(r.content)
-			access_token = parsed['access_token']
+			access_token = parsed['access_token'] 
 			request.session['access_token'] = access_token[0]
-			isAuthorized = True
 			message = 'You have successfully been authenticated!'
 		else:
 			message = 'You cannot be authenticated (' + str(r.status_code) + ').' 
 
-		isAuthorized = True
 	return render(request, "GithubApp/index.html", {'message': message})
 
 
@@ -130,6 +127,7 @@ def GetData(url, token):
 			response = urllib2.urlopen(url).read()
 		data = json.loads(response.decode('utf-8'))
 		print 'returned from ' + url
+
 		return data
 	except Exception as e: 
 		response = '{"message": "' + str(e) + '"}' 

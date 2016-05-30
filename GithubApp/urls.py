@@ -10,5 +10,6 @@ urlpatterns = [
 	url(r'^repository/$', views.repository, name='repository'),
 	url(r'^details/(?P<username>[A-z 0-9&-_+]+)/(?P<repository>.*)/(?P<sha>[A-z 0-9&.-_+]+)/', views.details, name='details'),
 	url(r'^add/$', views.add, name='add'),
+	url(r'^delete/$', views.delete, name='delete'),
 	url(r'^authorize/$', views.authorize, name='authorize'),
 ]
