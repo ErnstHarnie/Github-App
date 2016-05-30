@@ -5,23 +5,38 @@
 <div class="alert alert-info" role="alert">{{message}}</div>
 {% endif %}
 
-{% if commit %}
-<h1 style="float:left;" class="pull-left">Commits from <a href="http://www.github.com/{{repos.full_name}}" target="_blank">{{repos.full_name}}</a>: </h1>  <a href="http://github.com/{{repos.owner.login}}/{{repos.name}}/archive/{{repos.default_branch}}.zip" style="float:right;" class="btn btn-info" role="button" target="_blank">Download Repository ({{repos.default_branch}})</a>
+{% if repos %}
+{% for k, r in repos.items %}
+<h1 style="float:left;" class="pull-left">Commits from <a href="http://www.github.com/{{r.full_name}}" target="_blank">{{r.full_name}}</a>: </h1>  <a href="http://github.com/{{r.owner.login}}/{{r.name}}/archive/{{r.default_branch}}.zip" style="float:right;" class="btn btn-info" role="button" target="_blank">Download Repository ({{r.default_branch}})</a>
 
 <table class="table table-hover table-responsive">
 
+{% if commit %}
 <tr><th>Committed by</th><th>Message</th><th>Date</th><th>Download</th><th>Details</th></tr>
 
-{% for c in commit %} 
-<tr><td> {{c.commit.committer.name}} </td> <td> {{ c.commit.message }} </td> <td> {{ c.commit.committer.date }}<td><a href="http://github.com/{{repos.owner.login}}/{{repos.name}}/archive/{{c.sha}}.zip">Download</a></td></td><td><a href="{% url 'Github-App:details' repos.owner.login repos.name c.sha %}" target="_blank">Details</a></td> </tr>
-{% endfor%}
-
+{% for key, commit in commit.items %} 
+{% if k == key and not c.message %}
+{% for c in commit %}
+<tr><td> {{c.commit.committer.name}} </td> <td> {{ c.commit.message }} </td> <td> {{ c.commit.committer.date }}<td><a href="http://github.com/{{r.owner.login}}/{{r.name}}/archive/{{c.commit.sha}}.zip">Download</a></td></td><td><a href="{% url 'Github-App:details' r.owner.login r.name c.sha %}" target="_blank">Details</a></td> </tr>
+{% endfor %}
 </table>
 
+{% elif k == key %}
+</table>
+<div class="alert alert-info" role="alert">Error: Commits could not be loaded.</div>
+{% endif %}
+{% endfor %}
+{% else %}
+<p>No commits.</p>
+{% endif %}
+
+<hr/>
+
+{% endfor %}
 
 {% else %}
-<strong>Repository not found.</strong>
-<p>Click <a href="{% url 'Github-App:add' %}">here</a> to look for another repository.</p>
+<strong>No repositories added</strong>
+<p>Click <a href="{% url 'Github-App:add' %}">here</a> to add a repository.</p>
 {% endif %}
 
 {% endblock %}

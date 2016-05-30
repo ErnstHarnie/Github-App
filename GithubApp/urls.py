@@ -6,7 +6,6 @@ app_name = 'Github-App'
 
 urlpatterns = [
 	url(r'^$', views.repository, name='repository'),
-	url(r'^login/$', views.login, name='login'),
 	url(r'^index/$', views.repository, name='repository'),
 	url(r'^repository/$', views.repository, name='repository'),
 	url(r'^details/(?P<username>[A-z 0-9&-_+]+)/(?P<repository>.*)/(?P<sha>[A-z 0-9&.-_+]+)/', views.details, name='details'),
