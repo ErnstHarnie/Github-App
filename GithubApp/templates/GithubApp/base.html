@@ -19,6 +19,8 @@
 		<ul class="nav navbar-nav navbar-right">
     {% if not access_token %}
 		<li><a href="https://github.com/login/oauth/authorize?client_id={{client_id}}">Authenticate</a></li> 
+    {% elif user_data %}
+      <li><a href="#">Welcome, {{user_data.name}}</a></li>
     {% endif %}
 		</ul>
   </div><!-- /.container-fluid -->

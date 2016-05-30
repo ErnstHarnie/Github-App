@@ -7,9 +7,15 @@ from zipfile import ZipFile
 import os.path, json, urllib, urllib2, requests, re, logging, urlparse
 
 githubRepoUrls = {}
-
+userUrl = 'https://api.github.com/user'
+reposUrl = 'https://api.github.com/repos/'
+# https://developer.github.com/v3/repos/#list-user-repositories
 
 def add(request):
+	userData = ''
+	if request.session['access_token']:
+		userData = GetData(userUrl, request.session['access_token'])
+
 	if (request.method == "POST" and request.POST):
 		username = request.POST['username']
 		repository = request.POST['repository']
@@ -22,7 +28,7 @@ def add(request):
 			DownloadAndExtract(downloadUrl, downloadedRepoPath)
 	  	return HttpResponseRedirect('/GithubApp/')
 	else:
-		return render(request, "GithubApp/addrepository.html", {'access_token': request.session['access_token']})
+		return render(request, "GithubApp/addrepository.html", {'access_token': request.session['access_token'], 'user_data': userData})
 
 
 def delete(request):
@@ -34,14 +40,18 @@ def delete(request):
 
 def repository(request):
 
-	reposUrl = 'https://api.github.com/repos/'
 	commitsUrl = '' # e.g: https://api.github.com/repos/ErnstHarnie/Velo/commits
 	reposData = ''
 	commitsData = ''
+	userData = ''
 	message = ''
 
 	jsonReposData = {}
 	jsonCommitsData = {}
+
+
+	if request.session['access_token']:
+		userData = GetData(userUrl, request.session['access_token'])
 
 	if 'message' in reposData or 'message' in commitsData:		# on error
 		message = reposData['message']
@@ -56,7 +66,7 @@ def repository(request):
 				jsonReposData[key] = GetData(reposUrl, request.session['access_token'])
 				jsonCommitsData[key] = GetData(commitsUrl, request.session['access_token'])
 
-	return render(request, "GithubApp/index.html", {'repos': jsonReposData, 'commit': jsonCommitsData, 'message': message, 'access_token': request.session['access_token']})
+	return render(request, "GithubApp/index.html", {'repos': jsonReposData, 'commit': jsonCommitsData, 'message': message, 'access_token': request.session['access_token'], 'user_data': userData})
 
 def details(request, username, repository, sha):
 	reposUrl = 'https://api.github.com/repos/' + username + "/" + repository
@@ -94,7 +104,6 @@ def authorize(request):
 			message = 'You cannot be authenticated (' + str(r.status_code) + ').' 
 
 	return render(request, "GithubApp/index.html", {'message': message})
-
 
 def DownloadAndExtract(url, destinationPath):
 	#http://stackoverflow.com/questions/16760992/how-to-download-a-zip-file-from-a-site-python
