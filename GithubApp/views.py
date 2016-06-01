@@ -59,7 +59,7 @@ def repository(request):
 		if githubRepoUrls:	 # if list is not empty
 			for key in githubRepoUrls:
 				reposUrl = githubRepoUrls[key]
-				commitsUrl = githubRepoUrls[key] + "/commits"
+				commitsUrl = githubRepoUrls[key] + "/commits" 
 				downloadedRepoPath = 'Repositories/' + key
 				print 'attempting to get ' + key
 
@@ -88,6 +88,18 @@ def details(request, username, repository, sha):
 		del lines[:-maxElements] # deletes all elements after maxElements (10)
 
 	return render(request, "GithubApp/details.html", {'commits': commitsData, 'sorted': lines,  'repos': reposData, 'message': message, 'access_token': request.session['access_token']})
+
+def addAllRepositories(request):
+	if request.session['access_token']:
+		repoUrl = userUrl + "/repos" 
+		repoData = GetData(repoUrl, request.session['access_token'])
+
+		for repo in repoData:
+			reposUrl = "https://api.github.com/repos/" + repo['full_name']
+			githubRepoUrls[repo['name']] = reposUrl
+
+	return HttpResponseRedirect('/GithubApp/')
+
 
 def authorize(request):
 	if request.GET.get('code', ''):
