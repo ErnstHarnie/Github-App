@@ -49,7 +49,6 @@ def repository(request):
 	jsonReposData = {}
 	jsonCommitsData = {}
 
-
 	if request.session['access_token']:
 		userData = GetData(userUrl, request.session['access_token'])
 
@@ -100,6 +99,27 @@ def addAllRepositories(request):
 
 	return HttpResponseRedirect('/GithubApp/')
 
+def downloadAllRepositories(request):
+	message = ''
+	if request.session['access_token'] and len(githubRepoUrls) > 0:
+		repoUrl = userUrl + "/repos"
+
+		for k, v in githubRepoUrls.iteritems():
+			downloadUrl = "http://github.com/" + v + "/archive/master.zip"
+			downloadedRepoPath = 'Repositories/' + k
+			DownloadAndExtract(downloadUrl, downloadedRepoPath)
+			message += k + ', '
+		message += ' has been downloaded and extracted.'
+
+	elif request.session['access_token']:
+		message = 'You need to add at least 1 repository.'
+	else:
+		message = 'You need to be authenticated to do this.'
+	return render(request, "GithubApp/downloadall.html", {'message': message})
+
+def clearAllRepositories(request):
+	githubRepoUrls.clear()
+	return HttpResponseRedirect('/GithubApp/')
 
 def authorize(request):
 	if request.GET.get('code', ''):

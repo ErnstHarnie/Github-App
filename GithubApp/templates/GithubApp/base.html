@@ -15,13 +15,16 @@
     <!-- Collect the nav links, forms, and other content for toggling -->
       <ul class="nav navbar-nav navbar-left">
         <li><a href="{% url 'Github-App:add' %}">Add</a></li>
+        <li><a href="{% url 'Github-App:downloadAllRepositories' %}">Download + extract all repositories</a></li>
+        <li><a href="{% url 'Github-App:clearAllRepositories' %}">Clear all repositories</a></li>
+
 		</ul>
 		<ul class="nav navbar-nav navbar-right">
     {% if not access_token %}
 		<li><a href="https://github.com/login/oauth/authorize?client_id={{client_id}}">Authenticate</a></li> 
     {% elif user_data %}
     <li><a href="{% url 'Github-App:addAllRepositories' %}">Add all my repositories</a></li>
-      <li><a href="#">Welcome, {{user_data.name}}</a></li>
+    <li><a href="#">Welcome, {{user_data.name}}</a></li>
     {% endif %}
 		</ul>
   </div><!-- /.container-fluid -->
