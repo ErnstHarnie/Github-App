@@ -4,17 +4,13 @@ from django.http import HttpResponseRedirect
 from django.conf import settings
 from django.shortcuts import render_to_response
 from zipfile import ZipFile
+from django.template import RequestContext
 import os.path, json, urllib, urllib2, requests, re, logging, urlparse
 
 githubRepoUrls = {}
 userUrl = 'https://api.github.com/user'
-reposUrl = 'https://api.github.com/repos/'
-# https://developer.github.com/v3/repos/#list-user-repositories
 
 def add(request):
-	userData = ''
-	if request.session['access_token']:
-		userData = GetData(userUrl, request.session['access_token'])
 
 	if (request.method == "POST" and request.POST):
 		username = request.POST['username']
@@ -28,53 +24,53 @@ def add(request):
 			DownloadAndExtract(downloadUrl, downloadedRepoPath)
 	  	return HttpResponseRedirect('/GithubApp/')
 	else:
-		return render(request, "GithubApp/addrepository.html", {'access_token': request.session['access_token'], 'user_data': userData})
-
+		return render(request, "GithubApp/addrepository.html", {})
 
 def delete(request):
-
 	k = request.POST.get('repokey', False)
 	print 'key: ' + str(k)
 	githubRepoUrls.pop(k, None)
 	return HttpResponseRedirect("/GithubApp/")
 
 def repository(request):
-
 	commitsUrl = '' # e.g: https://api.github.com/repos/ErnstHarnie/Velo/commits
-	reposData = ''
-	commitsData = ''
 	userData = ''
 	message = ''
+	sessionKey = ''
 
 	jsonReposData = {}
 	jsonCommitsData = {}
 
-	if request.session['access_token']:
-		userData = GetData(userUrl, request.session['access_token'])
+	if 'access_token' in request.session:
+		sessionKey = request.session['access_token']
 
-	if 'message' in reposData or 'message' in commitsData:		# on error
-		message = reposData['message']
-	else: 
-		if githubRepoUrls:	 # if list is not empty
-			for key in githubRepoUrls:
-				reposUrl = githubRepoUrls[key]
-				commitsUrl = githubRepoUrls[key] + "/commits" 
-				downloadedRepoPath = 'Repositories/' + key
-				print 'attempting to get ' + key
+	if githubRepoUrls:	 # if list is not empty
+		for key in githubRepoUrls:
+			reposUrl = githubRepoUrls[key]
+			commitsUrl = githubRepoUrls[key] + "/commits" 
+			downloadedRepoPath = 'Repositories/' + key
+			print 'attempting to get ' + key
 
-				jsonReposData[key] = GetData(reposUrl, request.session['access_token'])
-				jsonCommitsData[key] = GetData(commitsUrl, request.session['access_token'])
+			jsonReposData[key] = GetData(reposUrl, sessionKey)
+			jsonCommitsData[key] = GetData(commitsUrl, sessionKey)
 
-	return render(request, "GithubApp/index.html", {'repos': jsonReposData, 'commit': jsonCommitsData, 'message': message, 'access_token': request.session['access_token'], 'user_data': userData})
+			if 'message' in jsonReposData[key]:
+				message = jsonReposData[key]['message']
+
+	return render(request, "GithubApp/index.html", {'repos': jsonReposData, 'commit': jsonCommitsData, 'message': message})
 
 def details(request, username, repository, sha):
 	reposUrl = 'https://api.github.com/repos/' + username + "/" + repository
 	commitsUrl = reposUrl + "/commits/" + sha
 	message = ''
 	lines = ''
+	sessionKey = ''
 
-	commitsData = GetData(commitsUrl, request.session['access_token'])
-	reposData = GetData(reposUrl, request.session['access_token'])
+	if 'access_token' in request.session:
+		sessionKey = request.session.get('access_token')
+
+	commitsData = GetData(commitsUrl, sessionKey)
+	reposData = GetData(reposUrl, sessionKey)
 
 	if 'message' in reposData:			# on error
 		message = reposData['message']
@@ -86,10 +82,10 @@ def details(request, username, repository, sha):
 		maxElements = 10 
 		del lines[:-maxElements] # deletes all elements after maxElements (10)
 
-	return render(request, "GithubApp/details.html", {'commits': commitsData, 'sorted': lines,  'repos': reposData, 'message': message, 'access_token': request.session['access_token']})
+	return render(request, "GithubApp/details.html", {'commits': commitsData, 'sorted': lines,  'repos': reposData, 'message': message})
 
 def addAllRepositories(request):
-	if request.session['access_token']:
+	if 'access_token' in request.session:
 		repoUrl = userUrl + "/repos" 
 		repoData = GetData(repoUrl, request.session['access_token'])
 
@@ -101,7 +97,7 @@ def addAllRepositories(request):
 
 def downloadAllRepositories(request):
 	message = ''
-	if request.session['access_token'] and len(githubRepoUrls) > 0:
+	if len(githubRepoUrls) > 0:
 		repoUrl = userUrl + "/repos"
 
 		for k, v in githubRepoUrls.iteritems():
@@ -111,10 +107,8 @@ def downloadAllRepositories(request):
 			message += k + ', '
 		message += ' has been downloaded and extracted.'
 
-	elif request.session['access_token']:
-		message = 'You need to add at least 1 repository.'
 	else:
-		message = 'You need to be authenticated to do this.'
+		message = 'You need to add at least 1 repository.'
 	return render(request, "GithubApp/downloadall.html", {'message': message})
 
 def clearAllRepositories(request):
@@ -122,6 +116,8 @@ def clearAllRepositories(request):
 	return HttpResponseRedirect('/GithubApp/')
 
 def authorize(request):
+	if 'access_token' in request.session:
+		message = 'You are authorized already.'
 	if request.GET.get('code', ''):
 		settings.CLIENT_CODE = request.GET.get('code', '')
 
@@ -135,7 +131,7 @@ def authorize(request):
 		else:
 			message = 'You cannot be authenticated (' + str(r.status_code) + ').' 
 
-	return render(request, "GithubApp/index.html", {'message': message})
+	return render(request, "GithubApp/authorize.html", {'message': message})
 
 def DownloadAndExtract(url, destinationPath):
 	#http://stackoverflow.com/questions/16760992/how-to-download-a-zip-file-from-a-site-python
@@ -158,6 +154,7 @@ def DownloadAndExtract(url, destinationPath):
 def GetData(url, token):
 	try:
 		response = ''
+		data = ''
 		logging.info('Attempting to get ' + url + ' with the following token: ' + token)
 
 		if token: # if user is authenticated, add the token to header
@@ -166,9 +163,21 @@ def GetData(url, token):
 			response = urllib2.urlopen(req).read() 
 		else:
 			response = urllib2.urlopen(url).read()
+
 		data = json.loads(response.decode('utf-8'))
 		print 'returned from ' + url
 
+		return data
+	except urllib2.HTTPError as h:
+		print 'HTTPERROR: ' + str(h)
+		if h.code == 403:
+			print '403 error'
+			response = '{"message": "You have reached the API limit. You need to authenticate, or wait until the next hour."}'
+		elif h.code == 404:
+			response = '{"message": "One or more repositories could not be found."}' 
+		else:
+			response = '{"message": "An error occured."}' 
+		data = json.loads(response.decode('utf-8'))
 		return data
 	except Exception as e: 
 		response = '{"message": "' + str(e) + '"}' 
