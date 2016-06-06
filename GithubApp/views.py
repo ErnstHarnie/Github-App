@@ -120,8 +120,9 @@ def clearAllRepositories(request):
 	return HttpResponseRedirect('/GithubApp/')
 
 def authorize(request):
+	message = ''
 	if 'access_token' in request.session:
-		message = 'You are authorized already.'
+		message = 'You are authenticated already.'
 	elif request.GET.get('code', ''):
 		settings.CLIENT_CODE = request.GET.get('code', '')
 
@@ -129,12 +130,16 @@ def authorize(request):
 		r = requests.post('https://github.com/login/oauth/access_token', data=json.dumps({'client_id':settings.CLIENT_ID, 'client_secret':settings.CLIENT_SECRET,'code':settings.CLIENT_CODE}), headers=header)
 		if r.status_code is 200:
 			parsed = urlparse.parse_qs(r.content)
-			access_token = parsed['access_token'] 
-			request.session['access_token'] = access_token[0]
-			message = 'You have successfully been authenticated!'
+			if 'access_token' in parsed:
+				access_token = parsed['access_token'] 
+				request.session['access_token'] = access_token[0]
+				message = 'You have successfully been authenticated!'
+			else:
+				message = 'You cannot be authenticated. (' + str(parsed['error_description'][0]) + ')'
 		else:
 			message = 'You cannot be authenticated (' + str(r.status_code) + ').' 
-
+	else:
+		message = 'You cannot be authenticated.'
 	return render(request, "GithubApp/authorize.html", {'message': message})
 
 def DownloadAndExtract(url, destinationPath):
