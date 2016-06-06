@@ -11,16 +11,16 @@ githubRepoUrls = {}
 userUrl = 'https://api.github.com/user'
 
 def add(request):
-
 	if (request.method == "POST" and request.POST):
 		username = request.POST['username']
 		repository = request.POST['repository']
 		reposUrl = "https://api.github.com/repos/" + username + "/" + repository
-		githubRepoUrls[repository] = reposUrl
-		print 'added ' + githubRepoUrls[repository]
+		key = username + '/' + repository
+		githubRepoUrls[key] = reposUrl
+		print 'added ' + githubRepoUrls[key]
 		if request.POST.get('download', False):
 			downloadUrl =  "http://github.com/" + username + "/" + repository +  "/archive/master.zip"
-			downloadedRepoPath = 'Repositories/' + repository  # users/naam/repo
+			downloadedRepoPath = 'Repositories/' + username + '/' + repository  # users/naam/repo
 			DownloadAndExtract(downloadUrl, downloadedRepoPath)
 	  	return HttpResponseRedirect('/GithubApp/')
 	else:
@@ -28,8 +28,11 @@ def add(request):
 
 def delete(request):
 	k = request.POST.get('repokey', False)
-	print 'key: ' + str(k)
 	githubRepoUrls.pop(k, None)
+	return HttpResponseRedirect("/GithubApp/")
+
+def logout(request):
+	request.session.flush()
 	return HttpResponseRedirect("/GithubApp/")
 
 def repository(request):
@@ -91,7 +94,7 @@ def addAllRepositories(request):
 
 		for repo in repoData:
 			reposUrl = "https://api.github.com/repos/" + repo['full_name']
-			githubRepoUrls[repo['name']] = reposUrl
+			githubRepoUrls[repo['full_name']] = reposUrl
 
 	return HttpResponseRedirect('/GithubApp/')
 
@@ -101,7 +104,7 @@ def downloadAllRepositories(request):
 		repoUrl = userUrl + "/repos"
 
 		for k, v in githubRepoUrls.iteritems():
-			downloadUrl = "http://github.com/" + v + "/archive/master.zip"
+			downloadUrl = "http://github.com/" + k + "/archive/master.zip"
 			downloadedRepoPath = 'Repositories/' + k
 			DownloadAndExtract(downloadUrl, downloadedRepoPath)
 			message += k + ', '
@@ -109,6 +112,7 @@ def downloadAllRepositories(request):
 
 	else:
 		message = 'You need to add at least 1 repository.'
+
 	return render(request, "GithubApp/downloadall.html", {'message': message})
 
 def clearAllRepositories(request):
@@ -118,7 +122,7 @@ def clearAllRepositories(request):
 def authorize(request):
 	if 'access_token' in request.session:
 		message = 'You are authorized already.'
-	if request.GET.get('code', ''):
+	elif request.GET.get('code', ''):
 		settings.CLIENT_CODE = request.GET.get('code', '')
 
 		header = {'content-type':'application/json'} # required
@@ -171,7 +175,6 @@ def GetData(url, token):
 	except urllib2.HTTPError as h:
 		print 'HTTPERROR: ' + str(h)
 		if h.code == 403:
-			print '403 error'
 			response = '{"message": "You have reached the API limit. You need to authenticate, or wait until the next hour."}'
 		elif h.code == 404:
 			response = '{"message": "One or more repositories could not be found."}' 
