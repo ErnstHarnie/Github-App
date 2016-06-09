@@ -23,7 +23,7 @@
 {% for key, commit in commit.items %} 
 {% if k == key and not commit.message %}
 {% for c in commit %}
-<tr><td> {{c.commit.committer.name}} </td> <td> {{ c.commit.message }} </td> <td> {{ c.commit.committer.date }}<td><a href="http://github.com/{{r.owner.login}}/{{r.name}}/archive/{{c.commit.sha}}.zip">Download</a></td></td><td><a href="{% url 'Github-App:details' r.owner.login r.name c.sha %}" target="_blank">Details</a></td> </tr>
+<tr><td> {{c.commit.committer.name}} </td> <td> {{ c.commit.message }} </td> <td> {{ c.commit.committer.date }}<td><a href="http://github.com/{{r.owner.login}}/{{r.name}}/archive/{{c.sha}}.zip">Download</a></td></td><td><a href="{% url 'Github-App:details' r.owner.login r.name c.sha %}" target="_blank">Details</a></td> </tr>
 {% endfor %}
 </table>
 
