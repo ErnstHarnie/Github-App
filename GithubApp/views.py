@@ -31,10 +31,6 @@ def delete(request):
 	githubRepoUrls.pop(k, None)
 	return HttpResponseRedirect("/GithubApp/")
 
-def logout(request):
-	request.session.flush()
-	return HttpResponseRedirect("/GithubApp/")
-
 def repository(request):
 	commitsUrl = '' # e.g: https://api.github.com/repos/ErnstHarnie/Velo/commits
 	userData = ''

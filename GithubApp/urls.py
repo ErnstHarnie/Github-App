@@ -15,5 +15,4 @@ urlpatterns = [
 	url(r'^downloadall/$', views.downloadAllRepositories, name='downloadAllRepositories'),
 	url(r'^delete/$', views.delete, name='delete'),
 	url(r'^authorize/$', views.authorize, name='authorize'),
-	url(r'^logout/$', views.logout, name='logout'),
 ]

@@ -24,7 +24,7 @@
 		<li><a href="https://github.com/login/oauth/authorize?client_id={{client_id}}">Authenticate</a></li> 
     {% elif user_data %}
     <li><a href="{% url 'Github-App:addAllRepositories' %}">Add all my repositories</a></li>
-    <li><a href="{% url 'Github-App:logout' %}">Logout {{user_data.login}}</a></li>
+    <li><a href="#">Welcome {{user_data.login}}</a></li>
     {% endif %}
 		</ul>
   </div><!-- /.container-fluid -->
